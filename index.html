@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07070a">
+  <meta name="description" content="Gerador de sensibilidade para jogadores mobile. Site independente.">
+  <title>KNZIN.IP — Gerador de Sensibilidade</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="noise"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="KNZIN.IP — Gerador de Sensibilidade">
+      <img class="brand-logo" src="knzin-logo.png" alt="KNZIN.IP">
+      <span class="brand-copy">
+        <strong>KNZIN<span>.IP</span></strong>
+        <small>GERADOR DE SENSIBILIDADE</small>
+      </span>
+    </a>
+    <nav>
+      <a href="#gerador">Gerador</a>
+      <a href="#otimizador">Otimizador</a>
+      <a href="#dicas">Dicas</a>
+    </nav>
+    <button class="ghost-btn" id="openPrivate">Área privada</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><span></span> GERADOR INDEPENDENTE · 2026</div>
+        <h1>SENSIBILIDADE<br><em>PERFEITA.</em></h1>
+        <p>Monte uma configuração personalizada para o seu aparelho e estilo de jogo em poucos segundos.</p>
+        <div class="hero-actions">
+          <a class="primary-btn" href="#gerador">GERAR AGORA <span>↗</span></a>
+          <button class="secondary-btn" id="randomHero">Surpreenda-me</button>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="scanline"></div>
+        <div class="crosshair"><i></i><b></b></div>
+        <div class="hero-card-top"><span>LIVE CONFIG</span><span class="dot"></span></div>
+        <div class="hero-stat"><strong id="heroGeneral">187</strong><small>GERAL</small></div>
+        <div class="hero-bars">
+          <div><span style="width:82%"></span></div>
+          <div><span style="width:66%"></span></div>
+          <div><span style="width:91%"></span></div>
+        </div>
+        <div class="hero-card-bottom">
+          <span>PRECISÃO</span><strong>+94%</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-row">
+      <div><strong>100%</strong><span>GRÁTIS</span></div>
+      <div><strong>+50</strong><span>APARELHOS</span></div>
+      <div><strong>3</strong><span>ESTILOS</span></div>
+      <div><strong>1 CLIQUE</strong><span>PARA COPIAR</span></div>
+    </section>
+
+    <section class="section" id="gerador">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">01 / GERADOR</span>
+          <h2>Crie sua <em>configuração.</em></h2>
+        </div>
+        <p>Escolha o aparelho, o perfil de jogo e gere uma base equilibrada.</p>
+      </div>
+
+      <div class="generator-layout">
+        <div class="panel form-panel">
+          <div class="step"><span>01</span><div><label>MARCA</label><select id="brand"></select></div></div>
+          <div class="step"><span>02</span><div><label>MODELO</label><select id="model"></select></div></div>
+          <div class="search-wrap">
+            <input id="search" type="search" placeholder="Buscar seu celular...">
+            <span>⌕</span>
+          </div>
+          <button class="detect-btn" id="detect">◉ DETECTAR MEU APARELHO</button>
+
+          <div class="style-title"><label>03 / ESTILO DE JOGO</label></div>
+          <div class="styles">
+            <button class="style active" data-style="rush"><b>RUSH</b><small>CURTA DISTÂNCIA</small></button>
+            <button class="style" data-style="balanced"><b>EQUILÍBRIO</b><small>GERAL</small></button>
+            <button class="style" data-style="sniper"><b>SNIPER</b><small>LONGA DISTÂNCIA</small></button>
+          </div>
+
+          <button class="generate-btn" id="generate">GERAR SENSIBILIDADE <span>→</span></button>
+        </div>
+
+        <div class="panel result-panel" id="result">
+          <div class="result-head"><div><span>CONFIGURAÇÃO GERADA</span><strong id="deviceLabel">Selecione seu aparelho</strong></div><span class="status">● PRONTA</span></div>
+          <div class="sensi-grid">
+            <div class="sensi"><small>GERAL</small><strong id="sGeral">—</strong></div>
+            <div class="sensi"><small>PONTO VERMELHO</small><strong id="sRed">—</strong></div>
+            <div class="sensi"><small>MIRA 2X</small><strong id="s2x">—</strong></div>
+            <div class="sensi"><small>MIRA 4X</small><strong id="s4x">—</strong></div>
+            <div class="sensi"><small>AWM / SNIPER</small><strong id="sAwm">—</strong></div>
+            <div class="sensi"><small>OLHADINHA</small><strong id="sLook">—</strong></div>
+          </div>
+          <div class="result-footer">
+            <div><span>PERFIL</span><strong id="profileName">RUSH</strong></div>
+            <div><span>DISPOSITIVO</span><strong id="resultDevice">—</strong></div>
+            <button class="copy-btn" id="copy">COPIAR CONFIGURAÇÃO</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section optimizer" id="otimizador">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">02 / OTIMIZADOR</span>
+          <h2>Ajuste o seu <em>toque.</em></h2>
+        </div>
+        <p>Ative apenas os ajustes que fazem sentido para sua experiência.</p>
+      </div>
+      <div class="optimization-grid">
+        <label class="option"><input type="checkbox" checked><span class="check"></span><div><b>Calibrar sensibilidade</b><small>Ajuste fino do toque na tela.</small></div></label>
+        <label class="option"><input type="checkbox"><span class="check"></span><div><b>Reduzir recuo</b><small>Foco em controle de mira.</small></div></label>
+        <label class="option"><input type="checkbox" checked><span class="check"></span><div><b>Aumentar precisão</b><small>Melhore o rastreio do alvo.</small></div></label>
+        <label class="option"><input type="checkbox"><span class="check"></span><div><b>Resposta rápida</b><small>Prioriza resposta ao toque.</small></div></label>
+        <label class="option"><input type="checkbox"><span class="check"></span><div><b>Estabilidade visual</b><small>Prioriza consistência de FPS.</small></div></label>
+      </div>
+      <button class="apply-btn" id="apply">APLICAR AJUSTES</button>
+      <div class="toast" id="toast">Configuração atualizada com sucesso.</div>
+    </section>
+
+    <section class="section tips" id="dicas">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">03 / DICAS</span>
+          <h2>Jogue com mais <em>consistência.</em></h2>
+        </div>
+      </div>
+      <div class="tips-grid">
+        <article><span>01</span><h3>Antes de jogar</h3><p>Feche apps em segundo plano e deixe o aparelho em modo desempenho.</p></article>
+        <article><span>02</span><h3>Teste primeiro</h3><p>Use o campo de treinamento antes de levar a configuração para uma partida.</p></article>
+        <article><span>03</span><h3>Ajuste aos poucos</h3><p>Uma pequena mudança por vez facilita encontrar uma sensibilidade confortável.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div><strong>KNZIN<span>.IP</span></strong><small>GERADOR INDEPENDENTE DE SENSIBILIDADE</small></div>
+    <p>Não somos afiliados à Garena ou a qualquer desenvolvedora de jogos.</p>
+  </footer>
+
+  <div class="modal hidden" id="privateModal">
+    <div class="modal-box">
+      <button class="close" id="closePrivate">×</button>
+      <span class="section-kicker">ÁREA PRIVADA</span>
+      <h2>Seu painel.</h2>
+      <p>Este acesso é uma camada de interface. Para segurança real, use autenticação no servidor.</p>
+      <input id="privatePassword" type="password" placeholder="Senha">
+      <button class="generate-btn" id="privateLogin">ENTRAR</button>
+      <small class="modal-note">Senha inicial: <b>troque-no-script.js</b> antes de publicar.</small>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
