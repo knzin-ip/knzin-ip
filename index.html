@@ -64,7 +64,7 @@
       <a class="quick-card" href="#desafios"><span class="quick-icon">★</span><div><b>Desafios diários</b><small>Ganhe XP e volte amanhã</small></div><span>→</span></a>
     </section>
 
-    <section class="section" id="gerador">
+    <section class="section members-only" id="gerador">
       <div class="section-head">
         <div>
           <span class="section-kicker">01 / GERADOR AVANÇADO</span>
@@ -131,7 +131,7 @@
       </div>
     </section>
 
-    <section class="section saved" id="salvas">
+    <section class="section saved members-only" id="salvas">
       <div class="section-head">
         <div>
           <span class="section-kicker">02 / MINHAS CONFIGURAÇÕES</span>
@@ -152,7 +152,7 @@
       </div>
     </section>
 
-    <section class="section training" id="treino">
+    <section class="section training members-only" id="treino">
       <div class="section-head">
         <div>
           <span class="section-kicker">03 / TREINO</span>
@@ -176,7 +176,7 @@
       </div>
     </section>
 
-    <section class="section challenges" id="desafios">
+    <section class="section challenges members-only" id="desafios">
       <div class="section-head">
         <div>
           <span class="section-kicker">04 / DESAFIOS DIÁRIOS</span>
@@ -211,6 +211,35 @@
     <p>Não somos afiliados à Garena ou a qualquer desenvolvedora de jogos.</p>
   </footer>
 
+  <div class="modal hidden" id="authModal">
+    <div class="modal-box auth-box">
+      <button class="close" id="closeAuth" aria-label="Fechar">×</button>
+      <span class="section-kicker">ACESSO KNZIN.IP</span>
+      <h2 id="authTitle">Entre no seu painel.</h2>
+      <p id="authDescription">Use o mesmo e-mail da sua compra para que o sistema encontre seu acesso.</p>
+
+      <div class="auth-tabs" id="authTabs">
+        <button class="auth-tab active" data-auth-mode="login" type="button">ENTRAR</button>
+        <button class="auth-tab" data-auth-mode="signup" type="button">CRIAR CONTA</button>
+      </div>
+
+      <div id="authForm">
+        <label class="auth-field"><span>E-MAIL</span><input id="authEmail" type="email" autocomplete="email" placeholder="seuemail@gmail.com"></label>
+        <label class="auth-field"><span>SENHA</span><input id="authPassword" type="password" autocomplete="current-password" placeholder="Sua senha"></label>
+        <button class="generate-btn full-btn" id="authSubmit" type="button">ENTRAR <span>→</span></button>
+      </div>
+
+      <div class="auth-account hidden" id="authAccount">
+        <div class="account-status"><span>CONTA CONECTADA</span><strong id="accountEmail">—</strong></div>
+        <div class="account-access" id="accountAccess">Verificando seu acesso...</div>
+        <button class="secondary-btn full-btn" id="logoutBtn" type="button">SAIR DA CONTA</button>
+      </div>
+
+      <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
+      <small class="modal-note" id="authNote">Depois de criar a conta, confirme o e-mail recebido antes de entrar.</small>
+    </div>
+  </div>
+
   <div class="modal hidden" id="profileModal">
     <div class="modal-box">
       <button class="close" id="closeProfile">×</button>
@@ -234,6 +263,7 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
 </body>
 </html>

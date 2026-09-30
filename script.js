@@ -12,6 +12,212 @@ const CHECKOUT_URLS = { "7":"", "30":"", "365":"" };
 const STORAGE_KEYS = { profile:"knzin_profile_v3", configs:"knzin_configs_v3", training:"knzin_training_v3", challenges:"knzin_challenges_v3" };
 const state = { selectedStyle:"rush", aim:"precise", currentConfig:null, training:null, bestScore:Number(localStorage.getItem(STORAGE_KEYS.training)||0) };
 
+
+/* ===== Supabase authentication / access ===== */
+const SUPABASE_URL = "https://jusybpaerrfjbhrejbas.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_LzxWN9OtDmLeBXuxisIV_Q_eqjmLdrZ";
+const SITE_URL = "https://knzin-ip.github.io/knzin-ip/";
+const supabaseClient = window.supabase?.createClient
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    })
+  : null;
+
+const authState = { user:null, grant:null, active:false, loading:true, mode:"login" };
+
+function setAuthMessage(message, type=""){
+  const el=$("authMessage"); if(!el) return;
+  el.textContent=message || "";
+  el.className=`auth-message ${type}`.trim();
+}
+
+function formatExpiry(iso){
+  if(!iso) return "—";
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat("pt-BR", {dateStyle:"medium", timeStyle:"short"}).format(d);
+}
+
+function authLockHtml(){
+  return `<div class="access-lock"><div class="access-lock-inner"><span>ACESSO RESTRITO</span><h3 id="lockTitle">Entre para continuar.</h3><p id="lockText">Faça login com seu e-mail para verificarmos se seu plano KNZIN.IP está ativo.</p><button class="generate-btn full-btn lock-login" type="button">ENTRAR / CRIAR CONTA <span>→</span></button></div></div>`;
+}
+
+function renderAccessLocks(){
+  document.querySelectorAll(".members-only").forEach(section=>{
+    let lock=section.querySelector(":scope > .access-lock");
+    if(!lock){ section.insertAdjacentHTML("afterbegin", authLockHtml()); lock=section.querySelector(":scope > .access-lock"); }
+    const locked=!authState.active;
+    section.classList.toggle("auth-locked", locked);
+    if(lock) lock.hidden=!locked;
+  });
+  document.querySelectorAll(".lock-login").forEach(btn=>{
+    if(btn.dataset.bound) return;
+    btn.dataset.bound="1";
+    btn.addEventListener("click", ()=>openAuthModal("login"));
+  });
+}
+
+function updateHeaderAuth(){
+  const btn=$("openProfile"); if(!btn) return;
+  if(authState.user){
+    btn.textContent=authState.active ? "Minha conta" : "Conta";
+  }else{
+    btn.textContent="Entrar";
+  }
+}
+
+function updateAccountPanel(){
+  const email=$("accountEmail"), access=$("accountAccess"), form=$("authForm"), tabs=$("authTabs"), account=$("authAccount"), note=$("authNote"), title=$("authTitle"), desc=$("authDescription");
+  if(!email || !access) return;
+  if(authState.user){
+    if(form) form.classList.add("hidden");
+    if(tabs) tabs.classList.add("hidden");
+    account?.classList.remove("hidden");
+    if(note) note.classList.add("auth-note-hidden");
+    email.textContent=authState.user.email || "Conta KNZIN.IP";
+    if(authState.active && authState.grant){
+      access.className="account-access active";
+      access.innerHTML=`<strong>ACESSO ATIVO</strong><br>Plano: ${authState.grant.plan_days} dias<br>Válido até: ${formatExpiry(authState.grant.expires_at)}`;
+    }else{
+      access.className="account-access inactive";
+      access.innerHTML=`<strong>SEM ACESSO ATIVO</strong><br>Use o mesmo e-mail da compra. Caso a compra já tenha sido aprovada, aguarde o processamento do webhook.`;
+    }
+    if(title) title.textContent="Sua conta.";
+    if(desc) desc.textContent="Aqui você acompanha o estado do seu acesso ao KNZIN.IP.";
+  }else{
+    if(form) form.classList.remove("hidden");
+    if(tabs) tabs.classList.remove("hidden");
+    account?.classList.add("hidden");
+    if(note) note.classList.remove("auth-note-hidden");
+  }
+}
+
+function setAuthMode(mode){
+  authState.mode=mode;
+  document.querySelectorAll(".auth-tab").forEach(b=>b.classList.toggle("active",b.dataset.authMode===mode));
+  const title=$("authTitle"), desc=$("authDescription"), submit=$("authSubmit"), password=$("authPassword"), note=$("authNote");
+  setAuthMessage("");
+  if(mode==="signup"){
+    title.textContent="Crie sua conta.";
+    desc.textContent="Use o mesmo e-mail da compra para vincular seu acesso ao KNZIN.IP.";
+    submit.innerHTML='CRIAR CONTA <span>→</span>';
+    password.autocomplete="new-password";
+    note.textContent="Depois de criar a conta, confirme o e-mail recebido antes de entrar.";
+  }else{
+    title.textContent="Entre no seu painel.";
+    desc.textContent="Use o mesmo e-mail da sua compra para que o sistema encontre seu acesso.";
+    submit.innerHTML='ENTRAR <span>→</span>';
+    password.autocomplete="current-password";
+    note.textContent="A confirmação de e-mail está ativa para a sua conta.";
+  }
+}
+
+function openAuthModal(mode="login"){
+  $("authModal").classList.remove("hidden");
+  if(authState.user){ updateAccountPanel(); return; }
+  setAuthMode(mode);
+  setTimeout(()=>$("authEmail")?.focus(),50);
+}
+
+async function doAuthSubmit(){
+  if(!supabaseClient){ setAuthMessage("A autenticação não carregou. Atualize a página.","error"); return; }
+  const email=$("authEmail").value.trim().toLowerCase();
+  const password=$("authPassword").value;
+  if(!email || !email.includes("@")){ setAuthMessage("Digite um e-mail válido.","error"); return; }
+  if(password.length < 6){ setAuthMessage("A senha precisa ter pelo menos 6 caracteres.","error"); return; }
+  const submit=$("authSubmit"); submit.disabled=true;
+  try{
+    if(authState.mode==="signup"){
+      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:SITE_URL}});
+      if(error) throw error;
+      if(data.session){
+        setAuthMessage("Conta criada e login realizado. Verificando seu acesso...","success");
+        await refreshAccess();
+      }else{
+        setAuthMessage("Conta criada. Confirme o e-mail recebido e depois entre no KNZIN.IP.","success");
+      }
+    }else{
+      const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+      if(error) throw error;
+      setAuthMessage("Login realizado. Verificando seu acesso...","success");
+      await refreshAccess();
+    }
+  }catch(error){
+    setAuthMessage(error?.message || "Não foi possível concluir o acesso.","error");
+  }finally{
+    submit.disabled=false;
+  }
+}
+
+async function logout(){
+  if(!supabaseClient) return;
+  const {error}=await supabaseClient.auth.signOut();
+  if(error){ toast(error.message); return; }
+  authState.user=null; authState.grant=null; authState.active=false;
+  updateHeaderAuth(); updateAccountPanel(); renderAccessLocks(); toast("Você saiu da conta.");
+  $("authModal").classList.add("hidden");
+}
+
+async function refreshAccess(){
+  authState.loading=true;
+  if(!supabaseClient){
+    authState.user=null; authState.grant=null; authState.active=false; authState.loading=false;
+    updateHeaderAuth(); renderAccessLocks(); return;
+  }
+  try{
+    const {data:{session}}=await supabaseClient.auth.getSession();
+    authState.user=session?.user || null;
+    authState.grant=null; authState.active=false;
+    if(authState.user){
+      const {data,error}=await supabaseClient
+        .from("access_grants")
+        .select("plan_days, status, starts_at, expires_at, kiwify_order_id")
+        .order("expires_at",{ascending:false})
+        .limit(1)
+        .maybeSingle();
+      if(error){
+        console.error("Access check error",error);
+        setAuthMessage("Não foi possível verificar seu acesso agora. Tente novamente em alguns segundos.","error");
+      }else if(data){
+        authState.grant=data;
+        authState.active=data.status==="active" && new Date(data.expires_at).getTime()>Date.now();
+      }
+    }
+  }catch(error){
+    console.error(error);
+    authState.user=null; authState.grant=null; authState.active=false;
+  }finally{
+    authState.loading=false;
+    updateHeaderAuth(); updateAccountPanel(); renderAccessLocks();
+  }
+}
+
+function requireAccess(message="Entre para acessar o painel do KNZIN.IP."){
+  if(authState.active) return true;
+  openAuthModal(authState.user ? "login" : "login");
+  setTimeout(()=>setAuthMessage(message, "error"),60);
+  return false;
+}
+
+if(supabaseClient){
+  supabaseClient.auth.onAuthStateChange(()=>{ setTimeout(refreshAccess,0); });
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  document.querySelectorAll(".auth-tab").forEach(btn=>btn.addEventListener("click",()=>setAuthMode(btn.dataset.authMode)));
+  $("authSubmit")?.addEventListener("click",doAuthSubmit);
+  $("closeAuth")?.addEventListener("click",()=>$("authModal").classList.add("hidden"));
+  $("logoutBtn")?.addEventListener("click",logout);
+  $("authModal")?.addEventListener("click",e=>{if(e.target===e.currentTarget)e.currentTarget.classList.add("hidden")});
+  document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",e=>{
+    const target=a.getAttribute("href");
+    if(["#gerador","#salvas","#treino","#desafios"].includes(target) && !authState.active){
+      e.preventDefault(); requireAccess("Faça login e tenha um acesso ativo para continuar.");
+    }
+  }));
+  refreshAccess();
+});
+
 const $ = (id)=>document.getElementById(id);
 const brand = $("brand"), model = $("model"), search = $("search");
 const styleButtons = [...document.querySelectorAll(".style")];
@@ -63,14 +269,14 @@ function generate(){
   $("heroGeneral").textContent=g; $("heroStyle").textContent=$("profileName").textContent;
   state.currentConfig={marca:brand.value,modelo:m,estilo:state.selectedStyle,preferencia:state.aim,dpi,fps,resolucao:$("resolution").value,...vals,timestamp:new Date().toISOString()};
 }
-$("generate").addEventListener("click",()=>{generate();toast("Configuração gerada!");});
-$("detect").addEventListener("click",()=>{
+$("generate").addEventListener("click",()=>{if(!requireAccess("Faça login com um acesso ativo para gerar configurações."))return;generate();toast("Configuração gerada!");});
+$("detect").addEventListener("click",()=>{ if(!requireAccess("Faça login com um acesso ativo para usar a detecção do aparelho."))return;
   const ua=navigator.userAgent.toLowerCase();
   let found=null;
   if(ua.includes("iphone"))found="Apple"; else if(ua.includes("samsung"))found="Samsung"; else if(ua.includes("xiaomi")||ua.includes("redmi")||ua.includes("poco"))found="Xiaomi"; else if(ua.includes("motorola"))found="Motorola"; else if(ua.includes("infinix"))found="Infinix"; else if(ua.includes("asus"))found="ASUS"; else if(ua.includes("realme"))found="Realme";
   if(found){brand.value=found;fillModels();toast(`Marca detectada: ${found}. Escolha o modelo.`);} else toast("Não foi possível identificar a marca automaticamente.");
 });
-$("copy").addEventListener("click",async()=>{
+$("copy").addEventListener("click",async()=>{ if(!requireAccess("Faça login com um acesso ativo para copiar sua configuração."))return;
   if(!state.currentConfig)generate();
   const c=state.currentConfig;
   const text=["KNZIN.IP — CONFIGURAÇÃO","",`${c.marca} ${c.modelo}`,`Estilo: ${c.estilo.toUpperCase()}`,`Preferência: ${c.preferencia.toUpperCase()}`,`DPI: ${c.dpi}`,`FPS: ${c.fps}`,`Resolução: ${c.resolucao==='auto'?"Automática":c.resolucao+"p"}`,"",`Geral: ${c.geral}`,`Ponto Vermelho: ${c.ponto_vermelho}`,`Mira 2x: ${c.mira_2x}`,`Mira 4x: ${c.mira_4x}`,`AWM/Sniper: ${c.awm}`,`Olhadinha: ${c.olhadinha}`].join("\n");
@@ -87,26 +293,27 @@ function renderSaved(){
   });
   $("profileConfigs").textContent=arr.length; $("heroConfigs").textContent=arr.length;
 }
-$("saveConfig").addEventListener("click",()=>{if(!state.currentConfig)generate();const arr=getConfigs();const c={...state.currentConfig,id:crypto.randomUUID?crypto.randomUUID():String(Date.now())};arr.unshift(c);saveJSON(STORAGE_KEYS.configs,arr.slice(0,20));addXP(10);renderSaved();toast("Configuração salva no seu perfil.");});
+$("saveConfig").addEventListener("click",()=>{if(!requireAccess("Faça login com um acesso ativo para salvar configurações."))return;if(!state.currentConfig)generate();const arr=getConfigs();const c={...state.currentConfig,id:crypto.randomUUID?crypto.randomUUID():String(Date.now())};arr.unshift(c);saveJSON(STORAGE_KEYS.configs,arr.slice(0,20));addXP(10);renderSaved();toast("Configuração salva no seu perfil.");});
 $("savedList").addEventListener("click",e=>{
   const btn=e.target.closest("button"); if(!btn)return; const arr=getConfigs(); const idx=Number(btn.dataset.index); const c=arr[idx]; if(!c)return;
   if(btn.dataset.action==="remove"){arr.splice(idx,1);saveJSON(STORAGE_KEYS.configs,arr);renderSaved();toast("Configuração removida.");return;}
   brand.value=c.marca; fillModels(); model.value=c.modelo; $("dpi").value=String(c.dpi); $("fps").value=String(c.fps); $("resolution").value=String(c.resolucao); state.selectedStyle=c.estilo;state.aim=c.preferencia; styleButtons.forEach(x=>x.classList.toggle("active",x.dataset.style===state.selectedStyle));aimButtons.forEach(x=>x.classList.toggle("active",x.dataset.aim===state.aim));generate();document.querySelector("#gerador").scrollIntoView({behavior:"smooth"});toast("Configuração carregada.");
 });
-$("clearSaved").addEventListener("click",()=>{if(!getConfigs().length)return;saveJSON(STORAGE_KEYS.configs,[]);renderSaved();toast("Histórico limpo.");});
+$("clearSaved").addEventListener("click",()=>{if(!requireAccess("Faça login com um acesso ativo para gerenciar seu histórico."))return;if(!getConfigs().length)return;saveJSON(STORAGE_KEYS.configs,[]);renderSaved();toast("Histórico limpo.");});
 
 function getProfile(){return safeJSON(STORAGE_KEYS.profile,{nickname:"KNZIN PLAYER",xp:0,challenges:0});}
 function setProfile(p){saveJSON(STORAGE_KEYS.profile,p);renderProfile();}
 function renderProfile(){const p=getProfile();const level=Math.floor(p.xp/100)+1,levelXp=p.xp%100;$("profileNickname").textContent=p.nickname;$("profileLevel").textContent=level;$("profileXp").textContent=p.xp;$("profileXpBar").style.width=levelXp+"%";$("profileChallenges").textContent=p.challenges;$("heroLevel").textContent=level;$("heroScore").textContent=state.bestScore;$("profileTraining").textContent=state.bestScore;}
 function addXP(amount){const p=getProfile();p.xp+=amount;setProfile(p);}
-$("openProfile").onclick=()=>openProfileModal();$("editProfile").onclick=()=>openProfileModal();
+$("openProfile").onclick=()=>{ if(authState.user) openAuthModal(); else openAuthModal("login"); };
+$("editProfile").onclick=()=>openProfileModal();
 function openProfileModal(){const p=getProfile();$("nicknameInput").value=p.nickname;$("profileModal").classList.remove("hidden");}
 $("closeProfile").onclick=()=>$("profileModal").classList.add("hidden");$("saveNickname").onclick=()=>{const nickname=$("nicknameInput").value.trim()||"KNZIN PLAYER";const p=getProfile();p.nickname=nickname;setProfile(p);$("profileModal").classList.add("hidden");toast("Perfil atualizado.");};
 
 function dayKey(){return new Date().toISOString().slice(0,10)}
 const challengeTemplates=[{title:"Gerar uma configuração",desc:"Gere uma nova sensibilidade para qualquer aparelho.",xp:15},{title:"Treinar reflexo",desc:"Complete uma sessão de treino sem sair antes do fim.",xp:25},{title:"Salvar uma configuração",desc:"Salve pelo menos uma configuração no seu histórico.",xp:10}];
 function renderChallenges(){const saved=safeJSON(STORAGE_KEYS.challenges,{});const day=dayKey();if(saved.day!==day){saved.day=day;saved.done={};saveJSON(STORAGE_KEYS.challenges,saved);}const box=$("challengeGrid");box.innerHTML="";challengeTemplates.forEach((c,i)=>{const done=!!saved.done?.[i];const el=document.createElement("article");el.className="challenge-card";el.innerHTML=`<span class="challenge-tag">DESAFIO ${String(i+1).padStart(2,"0")}</span><h3>${c.title}</h3><p>${c.desc}</p><div class="challenge-foot"><span class="challenge-xp">+${c.xp} XP</span><button class="challenge-action ${done?"done":""}" data-index="${i}">${done?"CONCLUÍDO":"MARCAR FEITO"}</button></div>`;box.appendChild(el);});}
-$("challengeGrid").addEventListener("click",e=>{const btn=e.target.closest("button");if(!btn)return;const i=Number(btn.dataset.index);const saved=safeJSON(STORAGE_KEYS.challenges,{day:dayKey(),done:{}});if(saved.done?.[i])return; saved.done=saved.done||{};saved.done[i]=true;saveJSON(STORAGE_KEYS.challenges,saved);const p=getProfile();p.challenges=(p.challenges||0)+1;saveJSON(STORAGE_KEYS.profile,p);addXP(challengeTemplates[i].xp);renderChallenges();toast("Desafio concluído. XP adicionado!");});
+$("challengeGrid").addEventListener("click",e=>{if(!requireAccess("Faça login com um acesso ativo para concluir desafios."))return;const btn=e.target.closest("button");if(!btn)return;const i=Number(btn.dataset.index);const saved=safeJSON(STORAGE_KEYS.challenges,{day:dayKey(),done:{}});if(saved.done?.[i])return; saved.done=saved.done||{};saved.done[i]=true;saveJSON(STORAGE_KEYS.challenges,saved);const p=getProfile();p.challenges=(p.challenges||0)+1;saveJSON(STORAGE_KEYS.profile,p);addXP(challengeTemplates[i].xp);renderChallenges();toast("Desafio concluído. XP adicionado!");});
 
 function positionTarget(){const stage=$("trainingStage");const existing=stage.querySelector(".target"); if(existing)existing.remove(); const target=document.createElement("button");target.className="target";const maxX=stage.clientWidth-58,maxY=stage.clientHeight-58;target.style.left=`${18+Math.random()*Math.max(1,maxX-36)}px`;target.style.top=`${48+Math.random()*Math.max(1,maxY-66)}px`;target.addEventListener("click",onHit);stage.appendChild(target);}
 function onHit(e){e.stopPropagation();if(!state.training?.running)return;state.training.hits++;$("hits").textContent=state.training.hits;positionTarget();}
@@ -135,6 +342,7 @@ function endTraining(){
   toast(isNewRecord?"Novo recorde! +25 XP":"Treino finalizado.");
 }
 function startTraining(){
+  if(!requireAccess("Faça login com um acesso ativo para iniciar o treino."))return;
   const stage=$("trainingStage");
   stage.innerHTML='<div class="stage-center"><strong>ACESSE OS ALVOS</strong><small>20 segundos</small></div>';
   state.training={running:true,hits:0,misses:0,seconds:20,interval:null};
@@ -165,4 +373,4 @@ $("closeTip").onclick=()=>$("tipModal").classList.add("hidden");$("closeTipBtn")
 
 document.querySelectorAll(".plan-btn").forEach(btn=>btn.addEventListener("click",(e)=>{const key=btn.dataset.plan;const url=CHECKOUT_URLS[key];if(url){btn.href=url;return;}e.preventDefault();toast("O checkout da Kiwify será conectado neste botão antes da publicação final.");}));
 
-renderProfile();renderSaved();renderChallenges();generate();
+renderProfile();renderSaved();renderChallenges();renderAccessLocks();generate();
