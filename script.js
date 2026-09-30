@@ -45,10 +45,18 @@ function authLockHtml(){
 function renderAccessLocks(){
   document.querySelectorAll(".members-only").forEach(section=>{
     let lock=section.querySelector(":scope > .access-lock");
-    if(!lock){ section.insertAdjacentHTML("afterbegin", authLockHtml()); lock=section.querySelector(":scope > .access-lock"); }
+    if(!lock){
+      section.insertAdjacentHTML("afterbegin", authLockHtml());
+      lock=section.querySelector(":scope > .access-lock");
+    }
     const locked=!authState.active;
     section.classList.toggle("auth-locked", locked);
-    if(lock) lock.hidden=!locked;
+    if(lock){
+      // Use both hidden and inline display so the overlay is guaranteed to disappear
+      // after a valid access is detected, even if another stylesheet affects [hidden].
+      lock.hidden=locked ? false : true;
+      lock.style.display=locked ? "grid" : "none";
+    }
   });
   document.querySelectorAll(".lock-login").forEach(btn=>{
     if(btn.dataset.bound) return;
@@ -172,6 +180,7 @@ async function refreshAccess(){
       const {data,error}=await supabaseClient
         .from("access_grants")
         .select("plan_days, status, starts_at, expires_at, kiwify_order_id")
+        .eq("email", authState.user.email?.toLowerCase() || "")
         .order("expires_at",{ascending:false})
         .limit(1)
         .maybeSingle();
@@ -206,7 +215,11 @@ if(supabaseClient){
 document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll(".auth-tab").forEach(btn=>btn.addEventListener("click",()=>setAuthMode(btn.dataset.authMode)));
   $("authSubmit")?.addEventListener("click",doAuthSubmit);
-  $("closeAuth")?.addEventListener("click",()=>$("authModal").classList.add("hidden"));
+  $("closeAuth")?.addEventListener("click",async()=>{
+    $("authModal").classList.add("hidden");
+    // Re-check access when the account modal is closed so the page unlocks immediately.
+    await refreshAccess();
+  });
   $("logoutBtn")?.addEventListener("click",logout);
   $("authModal")?.addEventListener("click",e=>{if(e.target===e.currentTarget)e.currentTarget.classList.add("hidden")});
   document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",e=>{
