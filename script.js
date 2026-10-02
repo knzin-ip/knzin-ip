@@ -8,11 +8,7 @@ const DATA = {
   Infinix: ["Hot 10","Hot 11","Hot 12","Hot 20","Hot 30","Hot 40","Hot 50","Hot 60","Note 10","Note 11","Note 12","Note 30","Note 40","Note 50","Zero 20","Zero 30","Zero 40","GT 10 Pro","GT 20 Pro","GT 30 Pro"]
 };
 
-const CHECKOUT_URLS = {
-  "7":"https://pay.monetizze.com.br/KHN470681",
-  "30":"",
-  "365":""
-};
+const CHECKOUT_URLS = { "7":"https://pay.monetizze.com.br/KHN470681", "30":"", "365":"" };
 const STORAGE_KEYS = { profile:"knzin_profile_v3", configs:"knzin_configs_v3", training:"knzin_training_v3", challenges:"knzin_challenges_v3" };
 const state = { selectedStyle:"rush", aim:"precise", currentConfig:null, training:null, bestScore:Number(localStorage.getItem(STORAGE_KEYS.training)||0) };
 
