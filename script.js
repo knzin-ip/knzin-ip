@@ -231,7 +231,30 @@ async function refreshAccess(){
     updateHeaderAuth(); updateAccountPanel(); renderAccessLocks();
   }
 }
+function openPasswordRecovery(){
+  const newPassword=prompt("Digite sua nova senha:");
 
+  if(!newPassword){
+    return;
+  }
+
+  if(newPassword.length<6){
+    alert("A senha precisa ter pelo menos 6 caracteres.");
+    return;
+  }
+
+  supabaseClient.auth.updateUser({
+    password:newPassword
+  }).then(({error})=>{
+    if(error){
+      alert(error.message);
+      return;
+    }
+
+    alert("Senha alterada com sucesso!");
+    window.location.href=SITE_URL;
+  });
+}
 function requireAccess(message="Entre para acessar o painel do KNZIN.IP."){
   if(authState.active) return true;
   openAuthModal(authState.user ? "login" : "login");
