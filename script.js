@@ -157,6 +157,37 @@ async function doAuthSubmit(){
   }
 }
 
+async function forgotPassword(){
+  if(!supabaseClient){
+    setAuthMessage("A autenticação não carregou. Atualize a página.","error");
+    return;
+  }
+
+  const email = $("authEmail").value.trim().toLowerCase();
+
+  if(!email || !email.includes("@")){
+    setAuthMessage("Digite seu e-mail para receber o link de recuperação.","error");
+    return;
+  }
+
+  try{
+    const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{
+      redirectTo:SITE_URL
+    });
+
+    if(error) throw error;
+
+    setAuthMessage(
+      "Enviamos um link para redefinir sua senha. Verifique seu e-mail.",
+      "success"
+    );
+  }catch(error){
+    setAuthMessage(
+      error?.message || "Não foi possível enviar o e-mail de recuperação.",
+      "error"
+    );
+  }
+}
 async function logout(){
   if(!supabaseClient) return;
   const {error}=await supabaseClient.auth.signOut();
@@ -215,6 +246,7 @@ if(supabaseClient){
 document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll(".auth-tab").forEach(btn=>btn.addEventListener("click",()=>setAuthMode(btn.dataset.authMode)));
   $("authSubmit")?.addEventListener("click",doAuthSubmit);
+  $("forgotPasswordBtn")?.addEventListener("click",forgotPassword);
   $("closeAuth")?.addEventListener("click",async()=>{
     $("authModal").classList.add("hidden");
     // Re-check access when the account modal is closed so the page unlocks immediately.
