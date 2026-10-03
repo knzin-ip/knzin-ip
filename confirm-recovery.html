@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redefinir senha — KNZIN.IP</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #08060d;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    .box {
+      width: min(420px, calc(100% - 40px));
+      padding: 32px;
+      border: 1px solid #3b1c61;
+      background: #110d19;
+      text-align: center;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(139, 44, 255, 0.15);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      color: #b85cff;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+    }
+
+    p {
+      color: #bbb;
+      line-height: 1.5;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 14px 22px;
+      background: #8b2cff;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      border-radius: 8px;
+    }
+
+    a:hover {
+      background: #a64dff;
+    }
+
+    .error {
+      color: #ff6b6b;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="box">
+    <h1>KNZIN.IP</h1>
+
+    <h2>Redefinir senha</h2>
+
+    <p>
+      Seu pedido de redefinição está pronto.
+    </p>
+
+    <p>
+      Clique abaixo para continuar.
+    </p>
+
+    <a id="continueBtn" href="#">
+      CONTINUAR
+    </a>
+
+    <p id="error" class="error" hidden>
+      Link de recuperação inválido ou ausente.
+    </p>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const confirmationUrl = params.get("confirmation_url");
+
+    const btn = document.getElementById("continueBtn");
+    const error = document.getElementById("error");
+
+    if (confirmationUrl) {
+      btn.href = confirmationUrl;
+    } else {
+      btn.hidden = true;
+      error.hidden = false;
+    }
+  </script>
+
+</body>
+</html>
