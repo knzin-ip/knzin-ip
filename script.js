@@ -239,6 +239,8 @@ function requireAccess(message="Entre para acessar o painel do KNZIN.IP."){
   return false;
 }
 
+
+
 if(supabaseClient){
   supabaseClient.auth.onAuthStateChange((event, session)=>{
     if(event === "PASSWORD_RECOVERY"){
@@ -250,9 +252,7 @@ if(supabaseClient){
 
     setTimeout(refreshAccess,0);
   });
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
+}document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll(".auth-tab").forEach(btn=>btn.addEventListener("click",()=>setAuthMode(btn.dataset.authMode)));
   $("authSubmit")?.addEventListener("click",doAuthSubmit);
   $("forgotPasswordBtn")?.addEventListener("click",forgotPassword);
