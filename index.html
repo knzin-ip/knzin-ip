@@ -27,6 +27,7 @@
       <a href="#dicas">Dicas</a>
     </nav>
     <button class="ghost-btn" id="openProfile">Meu perfil</button>
+    <button class="ghost-btn" id="openPlans">ASSINAR ACESSO</button>
   </header>
 
   <main id="inicio">
@@ -267,6 +268,39 @@
   </div>
 
   <div class="toast" id="toast"></div>
+  <div class="modal hidden" id="plansModal">
+  <div class="modal-box">
+    <button class="close" id="closePlans">×</button>
+
+    <span class="section-kicker">KNZIN.IP</span>
+    <h2>ASSINAR ACESSO</h2>
+    <p>Escolha o período de acesso ao KNZIN.IP.</p>
+
+    <div class="plans-grid">
+      <div class="plan-card">
+        <span class="plan-badge">7 DIAS</span>
+        <h3>ACESSO 7 DIAS</h3>
+        <strong>R$ 9,99</strong>
+        <button class="generate-btn full-btn" id="buy7Days">
+          COMPRAR 7 DIAS
+        </button>
+      </div>
+
+      <div class="plan-card">
+        <span class="plan-badge">30 DIAS</span>
+        <h3>ACESSO 30 DIAS</h3>
+        <strong>30 DIAS</strong>
+        <button class="generate-btn full-btn" id="buy30Days">
+          COMPRAR 30 DIAS
+        </button>
+      </div>
+    </div>
+
+    <button class="secondary-btn full-btn" id="closePlansBtn">
+      FECHAR
+    </button>
+  </div>
+</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
