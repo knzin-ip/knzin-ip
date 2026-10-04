@@ -211,7 +211,7 @@ async function refreshAccess(){
       const {data,error}=await supabaseClient
         .from("access_grants")
         .select("plan_days, status, starts_at, expires_at, kiwify_order_id")
-        .eq("email", authState.user.email?.toLowerCase() || "")
+        .eq("user_id", authState.user.id)
         .order("expires_at",{ascending:false})
         .limit(1)
         .maybeSingle();
