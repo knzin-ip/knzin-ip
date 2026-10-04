@@ -386,6 +386,25 @@ $("openProfile").onclick=()=>{ if(authState.user) openAuthModal(); else openAuth
 $("editProfile").onclick=()=>openProfileModal();
 function openProfileModal(){const p=getProfile();$("nicknameInput").value=p.nickname;$("profileModal").classList.remove("hidden");}
 $("closeProfile").onclick=()=>$("profileModal").classList.add("hidden");$("saveNickname").onclick=()=>{const nickname=$("nicknameInput").value.trim()||"KNZIN PLAYER";const p=getProfile();p.nickname=nickname;setProfile(p);$("profileModal").classList.add("hidden");toast("Perfil atualizado.");};
+$("openPlans")?.addEventListener("click",()=>{
+  $("plansModal")?.classList.remove("hidden");
+});
+
+$("closePlans")?.addEventListener("click",()=>{
+  $("plansModal")?.classList.add("hidden");
+});
+
+$("closePlansBtn")?.addEventListener("click",()=>{
+  $("plansModal")?.classList.add("hidden");
+});
+
+$("buy7Days")?.addEventListener("click",()=>{
+  window.location.href=CHECKOUT_URLS["7"];
+});
+
+$("buy30Days")?.addEventListener("click",()=>{
+  window.location.href=CHECKOUT_URLS["30"];
+});
 
 function dayKey(){return new Date().toISOString().slice(0,10)}
 const challengeTemplates=[{title:"Gerar uma configuração",desc:"Gere uma nova sensibilidade para qualquer aparelho.",xp:15},{title:"Treinar reflexo",desc:"Complete uma sessão de treino sem sair antes do fim.",xp:25},{title:"Salvar uma configuração",desc:"Salve pelo menos uma configuração no seu histórico.",xp:10}];
