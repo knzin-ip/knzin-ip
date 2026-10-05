@@ -405,7 +405,9 @@ $("buy7Days")?.addEventListener("click",()=>{
 $("buy30Days")?.addEventListener("click",()=>{
   window.location.href=CHECKOUT_URLS["30"];
 });
-
+$("buy365Days")?.addEventListener("click", ()=>{
+  window.location.href=CHECKOUT_URLS["365"];
+});
 function dayKey(){return new Date().toISOString().slice(0,10)}
 const challengeTemplates=[{title:"Gerar uma configuração",desc:"Gere uma nova sensibilidade para qualquer aparelho.",xp:15},{title:"Treinar reflexo",desc:"Complete uma sessão de treino sem sair antes do fim.",xp:25},{title:"Salvar uma configuração",desc:"Salve pelo menos uma configuração no seu histórico.",xp:10}];
 function renderChallenges(){const saved=safeJSON(STORAGE_KEYS.challenges,{});const day=dayKey();if(saved.day!==day){saved.day=day;saved.done={};saveJSON(STORAGE_KEYS.challenges,saved);}const box=$("challengeGrid");box.innerHTML="";challengeTemplates.forEach((c,i)=>{const done=!!saved.done?.[i];const el=document.createElement("article");el.className="challenge-card";el.innerHTML=`<span class="challenge-tag">DESAFIO ${String(i+1).padStart(2,"0")}</span><h3>${c.title}</h3><p>${c.desc}</p><div class="challenge-foot"><span class="challenge-xp">+${c.xp} XP</span><button class="challenge-action ${done?"done":""}" data-index="${i}">${done?"CONCLUÍDO":"MARCAR FEITO"}</button></div>`;box.appendChild(el);});}
