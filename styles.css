@@ -73,3 +73,4 @@ footer{border-top:1px solid var(--line);padding:34px 6vw;display:flex;justify-co
 .auth-state-badge.active .mini-dot{background:var(--green);box-shadow:0 0 10px var(--green)}
 @media(max-width:650px){.access-lock{position:absolute;padding:18px}.access-lock-inner{padding:22px}.auth-box{padding:24px}.auth-tab{font-size:8px}}
 #openPlans{display:inline-flex!important}
+.modal-box{max-height:calc(100vh - 40px);overflow-y:auto}
