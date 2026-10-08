@@ -398,14 +398,18 @@ $("closePlansBtn")?.addEventListener("click",()=>{
   $("plansModal")?.classList.add("hidden");
 });
 
-$("buy7Days")?.addEventListener("click",()=>{
+$("#buy7Days")?.addEventListener("click",()=>{
+  if(typeof fbq==="function") fbq("track","InitiateCheckout");
   window.location.href=CHECKOUT_URLS["7"];
 });
 
-$("buy30Days")?.addEventListener("click",()=>{
+$("#buy30Days")?.addEventListener("click",()=>{
+  if(typeof fbq==="function") fbq("track","InitiateCheckout");
   window.location.href=CHECKOUT_URLS["30"];
 });
-$("buy365Days")?.addEventListener("click", ()=>{
+
+$("#buy365Days")?.addEventListener("click",()=>{
+  if(typeof fbq==="function") fbq("track","InitiateCheckout");
   window.location.href=CHECKOUT_URLS["365"];
 });
 function dayKey(){return new Date().toISOString().slice(0,10)}
