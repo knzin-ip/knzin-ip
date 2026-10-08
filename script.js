@@ -299,7 +299,7 @@ if(supabaseClient){
   refreshAccess();
 });
 
-const $ = (id)=>document.getElementById(id);
+const $ = (id)=>document.getElementById(id.replace(/^#/,""));
 const brand = $("brand"), model = $("model"), search = $("search");
 const styleButtons = [...document.querySelectorAll(".style")];
 const aimButtons = [...document.querySelectorAll(".segment")];
